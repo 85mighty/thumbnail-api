@@ -59,16 +59,16 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def load_font(self, size, bold=True):
-        """폰트 로드 (기본 볼드)"""
+        """폰트 로드 (BlackHanSans)"""
         try:
-            font_path = '/var/task/fonts/NanumGothicBold.ttf'
+            font_path = '/var/task/fonts/BlackHanSans-Regular.ttf'
             if os.path.exists(font_path):
                 return ImageFont.truetype(font_path, size)
         except:
             pass
         
         try:
-            font_path = 'fonts/NanumGothicBold.ttf'
+            font_path = 'fonts/BlackHanSans-Regular.ttf'
             if os.path.exists(font_path):
                 return ImageFont.truetype(font_path, size)
         except:
@@ -179,11 +179,11 @@ class handler(BaseHTTPRequestHandler):
         watermark = 'ekunblog.com'
         
         try:
-            font_path = '/var/task/fonts/NanumGothic.ttf'
+            font_path = '/var/task/fonts/BlackHanSans-Regular.ttf'
             if os.path.exists(font_path):
                 font = ImageFont.truetype(font_path, 24)
             else:
-                font_path = 'fonts/NanumGothic.ttf'
+                font_path = 'fonts/BlackHanSans-Regular.ttf'
                 if os.path.exists(font_path):
                     font = ImageFont.truetype(font_path, 24)
                 else:
