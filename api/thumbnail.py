@@ -102,15 +102,15 @@ class handler(BaseHTTPRequestHandler):
         lines = words[:4]
         num_lines = len(lines)
         
-        # 폰트 크기 계산 (화면의 80% 채우도록 크게)
+        # 폰트 크기 계산 (화면의 85% 채우도록 더욱 크게)
         if num_lines == 1:
-            font_size = 280
+            font_size = 320
         elif num_lines == 2:
-            font_size = 220
+            font_size = 260
         elif num_lines == 3:
-            font_size = 180
+            font_size = 210
         else:  # 4줄
-            font_size = 150
+            font_size = 170
         
         font = self.load_font(font_size)
         
@@ -124,8 +124,8 @@ class handler(BaseHTTPRequestHandler):
             line_heights.append(line_height)
             total_height += line_height
         
-        # 줄 간격
-        line_spacing = 20
+        # 줄 간격 (조금 더 넓게)
+        line_spacing = 30
         total_height += line_spacing * (num_lines - 1)
         
         # 시작 Y 위치 (중앙 정렬)
