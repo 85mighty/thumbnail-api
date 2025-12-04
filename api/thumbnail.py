@@ -102,15 +102,15 @@ class handler(BaseHTTPRequestHandler):
         lines = words[:4]
         num_lines = len(lines)
         
-        # 폰트 크기 계산 (줄 수에 따라 조정)
+        # 폰트 크기 계산 (화면의 80% 채우도록 크게)
         if num_lines == 1:
-            font_size = 200
+            font_size = 280
         elif num_lines == 2:
-            font_size = 150
+            font_size = 220
         elif num_lines == 3:
-            font_size = 120
+            font_size = 180
         else:  # 4줄
-            font_size = 100
+            font_size = 150
         
         font = self.load_font(font_size)
         
@@ -142,12 +142,15 @@ class handler(BaseHTTPRequestHandler):
             # 색상 선택
             color = line_colors[i]
             
-            # 그림자 (검은색)
-            shadow_offset = 5
-            draw.text((x + shadow_offset, y_offset + shadow_offset), 
-                     line, font=font, fill='black')
+            # 검은색 테두리 (2px, 8방향)
+            outline_width = 2
+            for offset_x in range(-outline_width, outline_width + 1):
+                for offset_y in range(-outline_width, outline_width + 1):
+                    if offset_x != 0 or offset_y != 0:
+                        draw.text((x + offset_x, y_offset + offset_y), 
+                                 line, font=font, fill='black')
             
-            # 메인 텍스트
+            # 메인 텍스트 (컬러)
             draw.text((x, y_offset), line, font=font, fill=color)
             
             # 다음 줄 위치
