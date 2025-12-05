@@ -92,10 +92,10 @@ class handler(BaseHTTPRequestHandler):
         
         # 줄 색상 (노란색, 초록색, 핑크색, 핑크색)
         line_colors = [
-            '#FFD700',  # 노란색 (Gold)
-            '#00FF00',  # 초록색 (Lime)
-            '#FF1493',  # 핑크색 (DeepPink)
-            '#FF1493'   # 핑크색 (DeepPink)
+            '#fff371',  # 노란색 (Gold)
+            '#62ff00',  # 초록색 (Lime)
+            '#ff00a2',  # 핑크색 (DeepPink)
+            '#ff00a2'   # 핑크색 (DeepPink)
         ]
         
         # 최대 4줄
@@ -125,7 +125,7 @@ class handler(BaseHTTPRequestHandler):
             total_height += line_height
         
         # 줄 간격 (조금 더 넓게)
-        line_spacing = 30
+        line_spacing = 60
         total_height += line_spacing * (num_lines - 1)
         
         # 시작 Y 위치 (중앙 정렬)
@@ -143,7 +143,7 @@ class handler(BaseHTTPRequestHandler):
             color = line_colors[i]
             
             # 검은색 테두리 (2px, 8방향)
-            outline_width = 2
+            outline_width = 15
             for offset_x in range(-outline_width, outline_width + 1):
                 for offset_y in range(-outline_width, outline_width + 1):
                     if offset_x != 0 or offset_y != 0:
