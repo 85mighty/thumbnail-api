@@ -156,8 +156,7 @@ class handler(BaseHTTPRequestHandler):
             # 다음 줄 위치
             y_offset += line_heights[i] + line_spacing
         
-        # 워터마크 (우측 하단)
-        self.draw_watermark(draw, size, size)
+        
         
         return img
     
@@ -174,31 +173,6 @@ class handler(BaseHTTPRequestHandler):
             
             draw.line([(0, y), (width, y)], fill=(r, g, b))
     
-    def draw_watermark(self, draw, width, height):
-        """워터마크 (작은 폰트)"""
-        watermark = 'ekunblog.com'
-        
-        try:
-            font_path = '/var/task/fonts/BlackHanSans-Regular.ttf'
-            if os.path.exists(font_path):
-                font = ImageFont.truetype(font_path, 24)
-            else:
-                font_path = 'fonts/BlackHanSans-Regular.ttf'
-                if os.path.exists(font_path):
-                    font = ImageFont.truetype(font_path, 24)
-                else:
-                    font = ImageFont.load_default()
-        except:
-            font = ImageFont.load_default()
-        
-        bbox = draw.textbbox((0, 0), watermark, font=font)
-        text_width = bbox[2] - bbox[0]
-        
-        x = width - text_width - 20
-        y = height - 40
-        
-        # 반투명 흰색
-        draw.text((x, y), watermark, font=font, fill=(255, 255, 255, 180))
     
     def hex_to_rgb(self, hex_color):
         """HEX to RGB"""
