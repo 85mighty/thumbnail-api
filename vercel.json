@@ -3,12 +3,20 @@
     {
       "src": "api/thumbnail.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/publish.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/api/thumbnail",
       "dest": "api/thumbnail.py"
+    },
+    {
+      "src": "/api/publish",
+      "dest": "api/publish.py"
     }
   ]
 }
