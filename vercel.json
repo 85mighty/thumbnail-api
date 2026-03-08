@@ -9,7 +9,7 @@
   ],
   "functions": {
     "api/publish.py": {
-      "maxDuration": 300
+      "maxDuration": 600
     }
   }
 }
