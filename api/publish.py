@@ -71,7 +71,6 @@ class handler(BaseHTTPRequestHandler):
             self._json(400, {'error': 'JSON 파싱 실패: ' + str(e)})
             return
 
-        # 파라미터: title(H2 제목 1개), topic, index, wp_url, wp_user, wp_pass, openai_key
         title      = params.get('title', '')
         topic      = params.get('topic', '일본 여행')
         index      = params.get('index', 1)
@@ -80,15 +79,17 @@ class handler(BaseHTTPRequestHandler):
         wp_pass    = params.get('wp_pass', '')
         openai_key = params.get('openai_key', '')
 
-        
+        # html 파라미터 없음 - title, wp_url, wp_user, wp_pass, openai_key 만 체크
+        missing = [k for k in ['title', 'wp_url', 'wp_user', 'wp_pass', 'openai_key'] if not params.get(k)]
+        if missing:
+            self._json(400, {'error': '필수 파라미터 누락: ' + ', '.join(missing)})
+            return
 
         wp_auth = 'Basic ' + base64.b64encode((wp_user + ':' + wp_pass).encode()).decode()
 
         try:
-            # 이미지 1개 생성
             b64 = generate_image(title, topic, openai_key)
 
-            # WordPress 업로드
             media_url = upload_to_wordpress(
                 b64,
                 'section-' + str(index) + '.png',
