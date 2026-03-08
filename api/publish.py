@@ -80,10 +80,7 @@ class handler(BaseHTTPRequestHandler):
         wp_pass    = params.get('wp_pass', '')
         openai_key = params.get('openai_key', '')
 
-        missing = [k for k in ['title','wp_url','wp_user','wp_pass','openai_key'] if not params.get(k)]
-        if missing:
-            self._json(400, {'error': '필수 파라미터 누락: ' + ', '.join(missing)})
-            return
+        
 
         wp_auth = 'Basic ' + base64.b64encode((wp_user + ':' + wp_pass).encode()).decode()
 
