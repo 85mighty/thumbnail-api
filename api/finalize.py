@@ -79,7 +79,13 @@ class handler(BaseHTTPRequestHandler):
             self._json(400, {'error': 'JSON 파싱 실패: ' + str(e)})
             return
 
-        html       = params.get('html', '')
+        # html: base64 인코딩된 경우 디코딩, 아닌 경우 그대로 사용
+        html_raw = params.get('html', '')
+        try:
+            html = base64.b64decode(html_raw).decode('utf-8')
+        except Exception:
+            html = html_raw
+
         pairs      = params.get('pairs', '')
         post_title = params.get('post_title', '')
         post_slug  = params.get('post_slug', '')
