@@ -71,7 +71,12 @@ class handler(BaseHTTPRequestHandler):
             self._json(400, {'error': 'JSON 파싱 실패: ' + str(e)})
             return
 
-        title      = params.get('title', '')
+        # title: base64 인코딩된 경우 디코딩, 아닌 경우 그대로 사용
+        title_raw  = params.get('title', '')
+        try:
+            title = base64.b64decode(title_raw).decode('utf-8')
+        except Exception:
+            title = title_raw
         topic      = params.get('topic', '일본 여행')
         index      = params.get('index', 1)
         wp_url     = params.get('wp_url', '').rstrip('/')
