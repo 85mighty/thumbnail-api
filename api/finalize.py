@@ -22,7 +22,6 @@ def insert_images_into_html(html, pairs):
         if not title or not media_url:
             continue
 
-        # H2 태그 찾기 (태그 안의 HTML 제거 후 텍스트 비교)
         pattern = re.compile(r'<h2[^>]*>([\s\S]*?)<\/h2>', re.IGNORECASE)
         for match in pattern.finditer(modified):
             tag_text = re.sub(r'<[^>]+>', '', match.group(1)).strip()
@@ -72,13 +71,16 @@ class handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length)
 
         try:
-            params = json.loads(raw.decode('utf-8', errors='replace'))
+            raw_text = raw.decode('utf-8', errors='replace')
+            # 줄바꿈(\n, \r) 제외한 제어문자만 제거 (JSON 파싱 오류 방지)
+            raw_text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', raw_text)
+            params = json.loads(raw_text)
         except Exception as e:
             self._json(400, {'error': 'JSON 파싱 실패: ' + str(e)})
             return
 
         html       = params.get('html', '')
-        pairs      = params.get('pairs', '')      # "제목1|||url1\n제목2|||url2"
+        pairs      = params.get('pairs', '')
         post_title = params.get('post_title', '')
         post_slug  = params.get('post_slug', '')
         post_status= params.get('post_status', 'publish')
@@ -93,10 +95,8 @@ class handler(BaseHTTPRequestHandler):
 
         wp_auth = 'Basic ' + base64.b64encode((wp_user + ':' + wp_pass).encode()).decode()
 
-        # HTML에 이미지 삽입
         final_html = insert_images_into_html(html, pairs)
 
-        # WordPress 발행
         try:
             post = create_post(post_title, post_slug, final_html, post_status, wp_url, wp_auth)
             self._json(200, {
