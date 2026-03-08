@@ -3,7 +3,6 @@ import base64
 import re
 import time
 import urllib.request
-import threading
 from http.server import BaseHTTPRequestHandler
 
 SKIP_KEYWORDS = ['자주 묻는 질문', 'FAQ', '함께 읽으면', '함께읽으면']
@@ -92,55 +91,6 @@ def create_or_update_post(post_id, title, slug, content, status, wp_url, wp_auth
         return json.loads(res.read())
 
 
-def process_in_background(params):
-    """백그라운드에서 이미지 생성 + WordPress 발행"""
-    html       = params.get('html', '')
-    post_id    = params.get('post_id')
-    post_title = params.get('post_title', '새 포스트')
-    post_slug  = params.get('post_slug', '')
-    post_status= params.get('post_status', 'publish')
-    topic      = params.get('topic', '일본 여행')
-    wp_url     = params.get('wp_url', '').rstrip('/')
-    wp_user    = params.get('wp_user', '')
-    wp_pass    = params.get('wp_pass', '')
-    openai_key = params.get('openai_key', '')
-
-    wp_auth = 'Basic ' + base64.b64encode((wp_user + ':' + wp_pass).encode()).decode()
-    sections = extract_h2_sections(html)
-    modified_html = html
-    ok_count = 0
-
-    for i, sec in enumerate(sections):
-        tag   = sec['tag']
-        title = sec['title']
-        try:
-            b64 = generate_image(title, topic, openai_key)
-            media_url = upload_to_wordpress(
-                b64, 'section-' + str(i + 1) + '.png', wp_url, wp_auth
-            )
-            img_tag = (
-                '\n<figure class="wp-block-image">'
-                '<img src="' + str(media_url) + '" alt="' + title + '" '
-                'style="width:100%;height:auto;margin-bottom:20px;">'
-                '</figure>\n'
-            )
-            modified_html = modified_html.replace(tag, tag + img_tag, 1)
-            ok_count += 1
-        except Exception:
-            pass
-
-        time.sleep(2)
-
-    # WordPress 발행
-    try:
-        create_or_update_post(
-            post_id, post_title, post_slug,
-            modified_html, post_status, wp_url, wp_auth
-        )
-    except Exception:
-        pass
-
-
 class handler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self):
@@ -158,26 +108,64 @@ class handler(BaseHTTPRequestHandler):
             self._json(400, {'error': 'JSON 파싱 실패: ' + str(e)})
             return
 
-        # 필수 파라미터 확인
-        required = ['html', 'wp_url', 'wp_user', 'wp_pass', 'openai_key']
-        missing = [k for k in required if not params.get(k)]
+        html       = params.get('html', '')
+        post_id    = params.get('post_id')
+        post_title = params.get('post_title', '새 포스트')
+        post_slug  = params.get('post_slug', '')
+        post_status= params.get('post_status', 'publish')
+        topic      = params.get('topic', '일본 여행')
+        wp_url     = params.get('wp_url', '').rstrip('/')
+        wp_user    = params.get('wp_user', '')
+        wp_pass    = params.get('wp_pass', '')
+        openai_key = params.get('openai_key', '')
+
+        missing = [k for k in ['html','wp_url','wp_user','wp_pass','openai_key'] if not params.get(k)]
         if missing:
             self._json(400, {'error': '필수 파라미터 누락: ' + ', '.join(missing)})
             return
 
-        # 백그라운드 스레드에서 처리 시작
-        t = threading.Thread(target=process_in_background, args=(params,))
-        t.daemon = True
-        t.start()
+        wp_auth = 'Basic ' + base64.b64encode((wp_user + ':' + wp_pass).encode()).decode()
+        sections = extract_h2_sections(html)
+        log = ['H2 ' + str(len(sections)) + '개 발견']
+        modified_html = html
+        ok_count = 0
 
-        # Make.com에 즉시 응답 (타임아웃 방지!)
-        sections = extract_h2_sections(params.get('html', ''))
-        self._json(200, {
-            'success': True,
-            'message': '백그라운드 처리 시작됨. 약 ' + str(len(sections) * 25) + '초 후 WordPress에 발행됩니다.',
-            'sections_count': len(sections),
-            'post_title': params.get('post_title', '')
-        })
+        for i, sec in enumerate(sections):
+            tag   = sec['tag']
+            title = sec['title']
+            log.append('[' + str(i+1) + '/' + str(len(sections)) + '] ' + title)
+            try:
+                b64 = generate_image(title, topic, openai_key)
+                log.append('  이미지 생성 완료')
+                media_url = upload_to_wordpress(b64, 'section-' + str(i+1) + '.png', wp_url, wp_auth)
+                log.append('  업로드: ' + str(media_url))
+                img_tag = (
+                    '\n<figure class="wp-block-image">'
+                    '<img src="' + str(media_url) + '" alt="' + title + '" '
+                    'style="width:100%;height:auto;margin-bottom:20px;">'
+                    '</figure>\n'
+                )
+                modified_html = modified_html.replace(tag, tag + img_tag, 1)
+                ok_count += 1
+            except Exception as e:
+                log.append('  오류: ' + str(e))
+            time.sleep(2)
+
+        try:
+            post = create_or_update_post(
+                post_id, post_title, post_slug,
+                modified_html, post_status, wp_url, wp_auth
+            )
+            self._json(200, {
+                'success': True,
+                'post_id': post.get('id'),
+                'post_url': post.get('link', ''),
+                'images_inserted': ok_count,
+                'total_sections': len(sections),
+                'log': log
+            })
+        except Exception as e:
+            self._json(500, {'error': str(e), 'log': log})
 
     def _cors(self):
         self.send_header('Access-Control-Allow-Origin', '*')
