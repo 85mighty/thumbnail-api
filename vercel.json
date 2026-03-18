@@ -1,7 +1,5 @@
 {
   "functions": {
-    "api/thumbnail.py": {"maxDuration": 60},
-    "api/publish.py": {"maxDuration": 300},
-    "api/finalize.py": {"maxDuration": 60}
+    "api/*.py": {"maxDuration": 300}
   }
 }
